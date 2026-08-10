@@ -41,7 +41,7 @@ export function renderDashboard(container) {
 
 function renderStats(tasks) {
   const uid = state.user?.uid;
-  const mine = tasks.filter((t) => (t.assignedTo || []).includes(uid));
+  const mine = tasks.filter((t) => (t.assignedTo || []).includes(uid) || t.createdBy === uid);
   const overdue = mine.filter((t) => t.dueDate && t.status !== "done" && new Date(t.dueDate) < new Date());
   const done = mine.filter((t) => t.status === "done");
   const stats = [
@@ -65,7 +65,7 @@ function renderTodayAndOverdue(tasks) {
   const uid = state.user?.uid;
   const now = new Date();
   const items = tasks.filter((t) => {
-    if (!(t.assignedTo || []).includes(uid) || t.status === "done") return false;
+    if (!((t.assignedTo || []).includes(uid) || t.createdBy === uid) || t.status === "done") return false;
     if (!t.dueDate) return false;
     const d = new Date(t.dueDate);
     return d < now || d.toDateString() === now.toDateString();
@@ -77,7 +77,7 @@ function renderUpcoming(tasks) {
   const uid = state.user?.uid;
   const now = new Date();
   const items = tasks
-    .filter((t) => (t.assignedTo || []).includes(uid) && t.status !== "done" && t.dueDate && new Date(t.dueDate) > now)
+    .filter((t) => ((t.assignedTo || []).includes(uid) || t.createdBy === uid) && t.status !== "done" && t.dueDate && new Date(t.dueDate) > now)
     .sort((a, b) => a.dueDate - b.dueDate)
     .slice(0, 6);
   renderTaskMiniList("upcoming-tasks", items);

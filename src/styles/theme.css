@@ -191,6 +191,19 @@ input:focus, textarea:focus, select:focus {
   border: 1px solid rgba(46,230,255,0.3); color: var(--cyan); background: rgba(46,230,255,0.08);
 }
 .badge { border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; }
+.nav-count {
+  display: none; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px; font-size: 11px;
+  background: rgba(46,230,255,0.14); color: var(--cyan); border: 1px solid rgba(46,230,255,0.3);
+}
+.nav-item.active .nav-count { background: rgba(46,230,255,0.22); }
+.count-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 22px; padding: 0 8px; margin-inline-start: 8px;
+  border-radius: 999px; font-size: 12.5px; font-weight: 700;
+  background: rgba(46,230,255,0.12); color: var(--cyan); border: 1px solid rgba(46,230,255,0.28);
+  vertical-align: middle;
+}
 .badge-high { background: rgba(255,77,109,0.15); color: var(--danger); }
 .badge-medium { background: rgba(255,176,32,0.15); color: var(--warning); }
 .badge-low { background: rgba(35,230,168,0.15); color: var(--success); }

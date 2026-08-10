@@ -1,20 +1,20 @@
 // ============================================================
 // GR Spektrumm Tools — App Shell (Sidebar + Topbar + Command Bar)
 // ============================================================
-import { state, logout, navigate, isAdmin, isAdminOrManager, toast } from "../modules/core.js";
+import { state, logout, navigate, isAdmin, isAdminOrManager, toast, playPingSound } from "../modules/core.js";
 import { watchMyNotifications, markNotificationRead } from "../modules/notifications.js";
 import { mountPrayerWidget } from "../modules/prayerTimes.js";
-import { getAllOnce } from "../modules/db.js";
+import { getAllOnce, watchCollection } from "../modules/db.js";
 
 const NAV = [
   { path: "dashboard", icon: "🛰️", label: "الرئيسية" },
-  { path: "tasks", icon: "🗂️", label: "المهام" },
+  { path: "tasks", icon: "🗂️", label: "المهام", countKey: "tasks" },
   { path: "team", icon: "👥", label: "متابعة الفريق", roles: ["admin", "manager"] },
   { path: "chat", icon: "💬", label: "الدردشة العامة" },
-  { path: "tools", icon: "🧰", label: "أدواتي" },
-  { path: "excel", icon: "📊", label: "ملفات Excel" },
-  { path: "solutions", icon: "🧩", label: "حلول ومعادلات" },
-  { path: "guides", icon: "📘", label: "شروحات" },
+  { path: "tools", icon: "🧰", label: "أدواتي", countKey: "tools" },
+  { path: "excel", icon: "📊", label: "ملفات Excel", countKey: "excelFiles" },
+  { path: "solutions", icon: "🧩", label: "حلول ومعادلات", countKey: "solutions" },
+  { path: "guides", icon: "📘", label: "شروحات", countKey: "guides" },
   { path: "settings", icon: "⚙️", label: "الإعدادات", roles: ["admin"] },
   { path: "help", icon: "❓", label: "طريقة الاستخدام" },
 ];
@@ -63,6 +63,7 @@ export function renderShell(rootEl) {
   mountPrayerWidget(document.getElementById("prayer-mount"));
   wireNotifications();
   wireCommandBar();
+  wireNavCounts();
 }
 
 function escapeName() {
@@ -78,7 +79,9 @@ function buildNav() {
   list.innerHTML = NAV.filter((n) => !n.roles || n.roles.includes(state.profile?.role))
     .map(
       (n) =>
-        `<div class="nav-item" data-route="${n.path}"><span class="nav-icon">${n.icon}</span><span>${n.label}</span></div>`
+        `<div class="nav-item" data-route="${n.path}"><span class="nav-icon">${n.icon}</span><span>${n.label}</span>${
+          n.countKey ? `<span class="badge nav-count" data-count-for="${n.path}" style="margin-inline-start:auto;"></span>` : ""
+        }</div>`
     )
     .join("");
   list.querySelectorAll(".nav-item").forEach((el) => {
@@ -86,6 +89,31 @@ function buildNav() {
       navigate(el.dataset.route);
       document.getElementById("sidebar").classList.remove("open");
     });
+  });
+}
+
+let navCountUnsubs = [];
+function wireNavCounts() {
+  navCountUnsubs.forEach((u) => u());
+  navCountUnsubs = [];
+  NAV.filter((n) => n.countKey).forEach((n) => {
+    const unsub = watchCollection(n.countKey, (items) => {
+      const badge = document.querySelector(`[data-count-for="${n.path}"]`);
+      if (!badge) return;
+      let value = items.length;
+      // Tasks: show the number of still-open tasks the user can act on
+      // (matches what the tasks page shows by default), not the raw total.
+      if (n.path === "tasks") {
+        const uid = state.user?.uid;
+        const visible = isAdminOrManager()
+          ? items
+          : items.filter((t) => (t.assignedTo || []).includes(uid) || t.createdBy === uid);
+        value = visible.filter((t) => t.status !== "done").length;
+      }
+      badge.textContent = value > 99 ? "99+" : String(value);
+      badge.style.display = value ? "inline-flex" : "none";
+    });
+    navCountUnsubs.push(unsub);
   });
 }
 
@@ -116,8 +144,17 @@ function wireNotifications() {
   const panel = document.getElementById("notif-panel");
   const countEl = document.getElementById("bell-count");
   let items = [];
+  let knownIds = null; // null = first load (don't ding for existing history)
 
   watchMyNotifications((notifs) => {
+    // Play a sound only for notifications that are brand new since the
+    // last snapshot (never on first load / page refresh).
+    if (knownIds) {
+      const isNew = notifs.some((n) => !n.isRead && !knownIds.has(n.id));
+      if (isNew) playPingSound();
+    }
+    knownIds = new Set(notifs.map((n) => n.id));
+
     items = notifs;
     const unread = items.filter((n) => !n.isRead).length;
     countEl.style.display = unread ? "block" : "none";
@@ -133,16 +170,28 @@ function wireNotifications() {
     panel.innerHTML = items
       .map(
         (n) => `
-      <div class="notif-item" data-id="${n.id}" style="padding:8px 6px;border-bottom:1px solid var(--glass-border);cursor:pointer;${
+      <div class="notif-item" data-id="${n.id}" data-task-id="${n.relatedTaskId || ""}" style="padding:8px 6px;border-bottom:1px solid var(--glass-border);cursor:pointer;${
           n.isRead ? "opacity:.55;" : ""
         }">
+        ${n.label ? `<div style="font-size:11px;font-weight:700;color:var(--cyan);">${escapeHtmlLocal(n.label)}</div>` : ""}
         <div style="font-size:12.5px;">${escapeHtmlLocal(n.message)}</div>
-        <div class="text-muted" style="font-size:10.5px;">${new Date(n.createdAt).toLocaleString("ar-EG")}</div>
+        <div class="text-muted" style="font-size:10.5px;">${new Date(n.createdAt).toLocaleString("ar-EG")}${
+          n.relatedTaskId ? " · اضغط لفتح المهمة" : ""
+        }</div>
       </div>`
       )
       .join("");
     panel.querySelectorAll(".notif-item").forEach((el) =>
-      el.addEventListener("click", () => markNotificationRead(el.dataset.id))
+      el.addEventListener("click", async () => {
+        await markNotificationRead(el.dataset.id);
+        const taskId = el.dataset.taskId;
+        if (taskId) {
+          const { openTaskOnLoad } = await import("../pages/tasks.js");
+          openTaskOnLoad(taskId);
+          navigate("tasks");
+        }
+        panel.style.display = "none";
+      })
     );
   }
 

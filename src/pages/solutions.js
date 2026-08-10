@@ -6,7 +6,7 @@ const TYPE_LABEL = { formula: "معادلة", vba: "VBA", powerquery: "Power Que
 
 export function renderSolutions(container) {
   container.innerHTML = `
-    <div class="section-title">🧩 حلول ومعادلات</div>
+    <div class="section-title">🧩 حلول ومعادلات <span class="count-pill" id="sol-count-pill">0</span></div>
     <div style="margin-bottom:16px;display:flex;justify-content:flex-end;">
       <button class="btn btn-primary" id="add-sol-btn">+ إضافة حل</button>
     </div>
@@ -23,6 +23,8 @@ export function renderSolutions(container) {
 function render() {
   const host = document.getElementById("sol-grid");
   if (!host) return;
+  const pill = document.getElementById("sol-count-pill");
+  if (pill) pill.textContent = String(allSolutions.length);
   if (!allSolutions.length) {
     host.innerHTML = `<div class="empty-state">لا توجد حلول مضافة بعد</div>`;
     return;

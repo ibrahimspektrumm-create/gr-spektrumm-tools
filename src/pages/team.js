@@ -1,5 +1,5 @@
-import { state, userName, toast, escapeHtml, formatDate, priorityMeta, statusMeta, openModal, closeModal } from "../modules/core.js";
-import { watchCollection, createDoc, getAllOnce } from "../modules/db.js";
+import { state, userName, toast, escapeHtml, formatDate, formatDateTime, priorityMeta, statusMeta, openModal, playPingSound } from "../modules/core.js";
+import { watchCollection, createDoc, watchTaskComments } from "../modules/db.js";
 import { sendNotification } from "../modules/notifications.js";
 
 let allTasks = [];
@@ -95,32 +95,85 @@ function taskRow(t) {
 }
 
 async function openCommentModal(task) {
-  const comments = (await getAllOnce("taskComments")).filter((c) => c.taskId === task.id);
+  let commentsUnsub = null;
   const overlay = openModal(
     `
-    <h3>تعليقات: ${escapeHtml(task.title)}</h3>
-    <div id="comments-list" style="max-height:220px;overflow:auto;margin:14px 0;">
-      ${
-        comments.length
-          ? comments.map((c) => `<div style="padding:8px 0;border-bottom:1px solid var(--glass-border);"><b>${escapeHtml(userName(c.authorId))}</b>: ${escapeHtml(c.text)}</div>`).join("")
-          : `<div class="text-muted">لا توجد تعليقات بعد</div>`
-      }
+    <h3>💬 تعليقات: ${escapeHtml(task.title)}</h3>
+    <div id="comments-list" style="max-height:260px;overflow:auto;margin:14px 0;">
+      <div class="text-muted" style="padding:10px 0;">جارِ التحميل…</div>
     </div>
     <div class="field-row">
-      <input id="comment-input" placeholder="أضف تعليقًا..." style="flex:1;" />
+      <input id="comment-input" placeholder="أضف تعليقًا... (Enter للإرسال)" style="flex:1;" />
       <button class="btn btn-primary" id="comment-send">إرسال</button>
     </div>
   `,
     {
       onMount: (ov) => {
-        ov.querySelector("#comment-send").addEventListener("click", async () => {
-          const text = ov.querySelector("#comment-input").value.trim();
+        const listEl = ov.querySelector("#comments-list");
+        let knownIds = null;
+
+        // Live subscription — new comments from anyone appear instantly
+        // without needing to reopen the modal.
+        commentsUnsub = watchTaskComments(task.id, (comments) => {
+          if (knownIds) {
+            const isNew = comments.some((c) => !knownIds.has(c.id) && c.authorId !== state.user?.uid);
+            if (isNew) playPingSound();
+          }
+          knownIds = new Set(comments.map((c) => c.id));
+          listEl.innerHTML = comments.length
+            ? comments
+                .map(
+                  (c) => `
+              <div style="padding:8px 0;border-bottom:1px solid var(--glass-border);">
+                <div style="display:flex;justify-content:space-between;gap:8px;">
+                  <b style="font-size:12.5px;">${escapeHtml(userName(c.authorId))}</b>
+                  <span class="text-muted" style="font-size:10.5px;">${formatDateTime(c.createdAt)}</span>
+                </div>
+                <div style="font-size:13px;margin-top:2px;">${escapeHtml(c.text)}</div>
+              </div>`
+                )
+                .join("")
+            : `<div class="text-muted" style="padding:10px 0;">لا توجد تعليقات بعد</div>`;
+          listEl.scrollTop = listEl.scrollHeight;
+        });
+
+        async function send() {
+          const input = ov.querySelector("#comment-input");
+          const text = input.value.trim();
           if (!text) return;
-          await createDoc("taskComments", { taskId: task.id, authorId: state.user.uid, text });
-          toast("تم إضافة التعليق", "success");
-          closeModal(ov);
+          input.value = "";
+          try {
+            await createDoc("taskComments", { taskId: task.id, authorId: state.user.uid, text });
+            // Notify everyone involved in the task (assignees + creator) except the commenter.
+            const recipients = new Set([...(task.assignedTo || []), task.createdBy].filter(Boolean));
+            recipients.delete(state.user.uid);
+            for (const uid of recipients) {
+              await sendNotification({
+                userId: uid,
+                type: "comment",
+                relatedTaskId: task.id,
+                message: `${state.profile?.name || "مستخدم"} علّق على مهمة "${task.title}": ${text.slice(0, 80)}`,
+              });
+            }
+          } catch (err) {
+            console.error(err);
+            toast("تعذّر إضافة التعليق", "error");
+          }
+        }
+        ov.querySelector("#comment-send").addEventListener("click", send);
+        ov.querySelector("#comment-input").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") send();
         });
       },
     }
   );
+
+  // Stop listening once the modal closes to avoid leaking subscriptions.
+  const observer = new MutationObserver(() => {
+    if (!document.body.contains(overlay)) {
+      if (commentsUnsub) commentsUnsub();
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { childList: true });
 }

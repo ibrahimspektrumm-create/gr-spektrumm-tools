@@ -1,0 +1,80 @@
+[debug] [2026-08-10T19:28:14.328Z] ----------------------------------------------------------------------
+[debug] [2026-08-10T19:28:14.330Z] Command:       /usr/local/nvm/versions/node/v24.18.1/bin/node /usr/local/node_packages/node_modules/.bin/firebase deploy --project spektrumm-17710
+[debug] [2026-08-10T19:28:14.331Z] CLI Version:   15.24.0
+[debug] [2026-08-10T19:28:14.331Z] Platform:      linux
+[debug] [2026-08-10T19:28:14.331Z] Node Version:  v24.18.1
+[debug] [2026-08-10T19:28:14.332Z] Detected Agent: unknown
+[debug] [2026-08-10T19:28:14.332Z] Time:          Mon Aug 10 2026 19:28:14 GMT+0000 (Coordinated Universal Time)
+[debug] [2026-08-10T19:28:14.332Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-10T19:28:15.821Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-10T19:28:15.822Z] > authorizing via signed-in user (ibrahimspektrumm@gmail.com)
+[debug] [2026-08-10T19:28:15.822Z] [iam] checking project spektrumm-17710 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]
+[debug] [2026-08-10T19:28:15.842Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:28:15.842Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:28:15.844Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/spektrumm-17710:testIamPermissions [none]
+[debug] [2026-08-10T19:28:15.844Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/spektrumm-17710:testIamPermissions  x-goog-user-project=spektrumm
+[debug] [2026-08-10T19:28:15.844Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/spektrumm-17710:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]}
+[debug] [2026-08-10T19:28:16.118Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/spektrumm-17710:testIamPermissions 200
+[debug] [2026-08-10T19:28:16.118Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/spektrumm-17710:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]}
+[debug] [2026-08-10T19:28:16.119Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:28:16.120Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:28:16.120Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/spektrumm-17710 [none]
+[debug] [2026-08-10T19:28:16.120Z] >>> [apiv2][(partial)header] GET https://firebase.googleapis.com/v1beta1/projects/spektrumm-17710  x-goog-user-project=spektrumm
+[debug] [2026-08-10T19:28:16.192Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/spektrumm-17710 403
+[debug] [2026-08-10T19:28:16.193Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/spektrumm-17710 {"error":{"code":403,"message":"Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"activationUrl":"https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm","service":"firebase.googleapis.com","containerInfo":"spektrumm","consumer":"projects/spektrumm","serviceTitle":"Firebase Management API"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm"}]}]}}
+[debug] [2026-08-10T19:28:16.194Z] Request to https://firebase.googleapis.com/v1beta1/projects/spektrumm-17710 had HTTP Error: 403, Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+[debug] [2026-08-10T19:28:16.195Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/spektrumm-17710 had HTTP Error: 403, Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+    at responseToError (/usr/local/node_packages/node_modules/firebase-tools/lib/responseToError.js:53:12)
+    at RetryOperation._fn (/usr/local/node_packages/node_modules/firebase-tools/lib/apiv2.js:415:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[error] 
+[error] Error: Failed to get Firebase project spektrumm-17710. Please make sure the project exists and your account has permission to access it.
+[debug] [2026-08-10T19:28:55.090Z] ----------------------------------------------------------------------
+[debug] [2026-08-10T19:28:55.096Z] Command:       /usr/local/nvm/versions/node/v24.18.1/bin/node /usr/local/node_packages/node_modules/.bin/firebase --debug projects:list
+[debug] [2026-08-10T19:28:55.097Z] CLI Version:   15.24.0
+[debug] [2026-08-10T19:28:55.098Z] Platform:      linux
+[debug] [2026-08-10T19:28:55.098Z] Node Version:  v24.18.1
+[debug] [2026-08-10T19:28:55.098Z] Detected Agent: unknown
+[debug] [2026-08-10T19:28:55.099Z] Time:          Mon Aug 10 2026 19:28:55 GMT+0000 (Coordinated Universal Time)
+[debug] [2026-08-10T19:28:55.099Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-10T19:28:55.564Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-10T19:28:55.565Z] > authorizing via signed-in user (ibrahimspektrumm@gmail.com)
+[debug] [2026-08-10T19:28:55.590Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:28:55.591Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:28:55.593Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-08-10T19:28:55.593Z] >>> [apiv2][(partial)header] GET https://firebase.googleapis.com/v1beta1/projects  x-goog-user-project=spektrumm
+[debug] [2026-08-10T19:28:55.693Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 403
+[debug] [2026-08-10T19:28:55.693Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2026-08-10T19:28:55.695Z] Request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000 had HTTP Error: 403, Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+[debug] [2026-08-10T19:28:55.697Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000 had HTTP Error: 403, Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+    at responseToError (/usr/local/node_packages/node_modules/firebase-tools/lib/responseToError.js:53:12)
+    at RetryOperation._fn (/usr/local/node_packages/node_modules/firebase-tools/lib/apiv2.js:415:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[error] 
+[error] Error: Failed to list Firebase projects. See firebase-debug.log for more info.
+[debug] [2026-08-10T19:30:22.411Z] ----------------------------------------------------------------------
+[debug] [2026-08-10T19:30:22.414Z] Command:       /usr/local/nvm/versions/node/v24.18.1/bin/node /usr/local/node_packages/node_modules/.bin/firebase projects:list
+[debug] [2026-08-10T19:30:22.414Z] CLI Version:   15.24.0
+[debug] [2026-08-10T19:30:22.414Z] Platform:      linux
+[debug] [2026-08-10T19:30:22.414Z] Node Version:  v24.18.1
+[debug] [2026-08-10T19:30:22.415Z] Detected Agent: unknown
+[debug] [2026-08-10T19:30:22.415Z] Time:          Mon Aug 10 2026 19:30:22 GMT+0000 (Coordinated Universal Time)
+[debug] [2026-08-10T19:30:22.415Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-10T19:30:22.785Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-10T19:30:22.786Z] > authorizing via signed-in user (ibrahimspektrumm@gmail.com)
+[debug] [2026-08-10T19:30:22.812Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:30:22.812Z] Checked if tokens are valid: true, expires at: 1786393633932
+[debug] [2026-08-10T19:30:22.814Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-08-10T19:30:22.814Z] >>> [apiv2][(partial)header] GET https://firebase.googleapis.com/v1beta1/projects  x-goog-user-project=spektrumm
+[debug] [2026-08-10T19:30:22.964Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 403
+[debug] [2026-08-10T19:30:22.964Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2026-08-10T19:30:22.966Z] Request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000 had HTTP Error: 403, Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+[debug] [2026-08-10T19:30:22.969Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000 had HTTP Error: 403, Firebase Management API has not been used in project spektrumm before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/firebase.googleapis.com/overview?project=spektrumm then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+    at responseToError (/usr/local/node_packages/node_modules/firebase-tools/lib/responseToError.js:53:12)
+    at RetryOperation._fn (/usr/local/node_packages/node_modules/firebase-tools/lib/apiv2.js:415:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[error] 
+[error] Error: Failed to list Firebase projects. See firebase-debug.log for more info.

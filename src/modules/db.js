@@ -11,6 +11,7 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   serverTimestamp,
   arrayUnion,
   getDocs,
@@ -57,6 +58,27 @@ export function deleteDocById(name, id) {
 }
 export function pushArrayField(name, id, field, value) {
   return updateDoc(doc(db, name, id), { [field]: arrayUnion(value) });
+}
+
+// Live comments for a single task — used by the task comments panel so
+// new comments appear instantly for everyone without reopening the modal.
+// NOTE: this needs a Firestore composite index (taskId ASC, createdAt ASC)
+// — Firestore will log a console link to auto-create it the first time
+// this runs against real data, or create it via firestore.indexes.json.
+export function watchTaskComments(taskId, cb) {
+  const q = query(collection(db, "taskComments"), where("taskId", "==", taskId), orderBy("createdAt", "asc"));
+  return onSnapshot(
+    q,
+    (qs) => {
+      const items = [];
+      qs.forEach((d) => items.push({ id: d.id, ...d.data() }));
+      cb(items);
+    },
+    (err) => {
+      console.error("watchTaskComments error:", err);
+      cb([], err);
+    }
+  );
 }
 
 // ---------- Storage helpers ----------

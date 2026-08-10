@@ -7,7 +7,17 @@ import {
   arrayUnion,
   getDoc,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { state, userName, escapeHtml, toast } from "../modules/core.js";
+import { state, userName, escapeHtml, toast, playPingSound } from "../modules/core.js";
+
+// NOTE (engineering caveat, not fixed in this pass to avoid a risky data
+// migration): all messages live inside one Firestore document
+// (generalChat/main) as a single array field. Firestore documents are
+// capped at 1MB, so this works fine for a long while but will eventually
+// hit a hard wall as message history grows. When that becomes a real
+// concern, the correct fix is to move each message to its own document
+// in a `generalChat/main/messages` subcollection with serverTimestamp()
+// ordering — happy to do that migration in a separate pass since it
+// touches both this file and firestore.rules.
 
 export function renderChat(container) {
   container.innerHTML = `
@@ -22,8 +32,14 @@ export function renderChat(container) {
   `;
 
   const ref = doc(db, "generalChat", "main");
+  let knownCount = null;
   const unsub = onSnapshot(ref, (snap) => {
     const messages = snap.exists() ? snap.data().messages || [] : [];
+    if (knownCount !== null && messages.length > knownCount) {
+      const last = messages[messages.length - 1];
+      if (last && last.senderId !== state.user?.uid) playPingSound();
+    }
+    knownCount = messages.length;
     renderMessages(messages);
   });
 

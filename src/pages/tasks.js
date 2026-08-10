@@ -17,9 +17,24 @@ import { sendNotification } from "../modules/notifications.js";
 let allTasks = [];
 let filters = { status: "all", mine: false, tag: "" };
 
+// Set by the notification bell so that once tasks load we auto-open the
+// relevant task's detail modal, even if this page wasn't mounted yet.
+let pendingTaskId = null;
+export function openTaskOnLoad(taskId) {
+  pendingTaskId = taskId;
+  // If the tasks page is already mounted and data already loaded, open now.
+  if (allTasks.length) {
+    const t = allTasks.find((x) => x.id === taskId);
+    if (t) {
+      pendingTaskId = null;
+      openTaskModal(t);
+    }
+  }
+}
+
 export function renderTasks(container) {
   container.innerHTML = `
-    <div class="section-title">🗂️ المهام</div>
+    <div class="section-title">🗂️ المهام <span class="count-pill" id="tasks-count-pill">0</span></div>
     <div class="glass-card card" style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <select id="f-status">
         <option value="all">كل الحالات</option>
@@ -55,6 +70,12 @@ export function renderTasks(container) {
   const unsub = watchCollection("tasks", (items) => {
     allTasks = items;
     renderList();
+    if (pendingTaskId) {
+      const t = allTasks.find((x) => x.id === pendingTaskId);
+      pendingTaskId = null;
+      if (t) openTaskModal(t);
+      else toast("تعذّر العثور على المهمة (قد تكون محذوفة)", "warning");
+    }
   });
   return unsub;
 }
@@ -81,6 +102,9 @@ function renderList() {
   if (!isAdminOrManager()) {
     items = items.filter((t) => (t.assignedTo || []).includes(uid) || t.createdBy === uid);
   }
+
+  const pill = document.getElementById("tasks-count-pill");
+  if (pill) pill.textContent = String(items.length);
 
   if (!items.length) {
     listEl.innerHTML = `<div class="empty-state">لا توجد مهام مطابقة</div>`;
@@ -146,6 +170,15 @@ async function completeTask(task) {
     completedAt: Date.now(),
   });
   toast("تم إتمام المهمة", "success");
+
+  if (task.createdBy && task.createdBy !== state.user.uid) {
+    await sendNotification({
+      userId: task.createdBy,
+      type: "task_done",
+      relatedTaskId: task.id,
+      message: `${state.profile?.name || "مستخدم"} أنهى مهمة "${task.title}"`,
+    });
+  }
 
   if (task.recurrence && task.recurrence !== "none") {
     const nextDue = computeNextDue(task.dueDate, task.recurrence);
@@ -235,8 +268,17 @@ export function openTaskModal(task = null) {
             if (task) {
               await updateDocById("tasks", task.id, payload);
               toast("تم تحديث المهمة", "success");
+              const newlyAssigned = finalAssignees.filter((uid) => !(task.assignedTo || []).includes(uid) && uid !== state.user.uid);
+              for (const uid of newlyAssigned) {
+                await sendNotification({
+                  userId: uid,
+                  type: "task_reminder",
+                  relatedTaskId: task.id,
+                  message: `تم إسناد مهمة لك: "${title}"`,
+                });
+              }
             } else {
-              await createDoc("tasks", {
+              const newTaskRef = await createDoc("tasks", {
                 ...payload,
                 status: "not_started",
                 createdBy: state.user.uid,
@@ -249,7 +291,10 @@ export function openTaskModal(task = null) {
                   await sendNotification({
                     userId: uid,
                     type: "task_reminder",
-                    message: `تم إسناد مهمة جديدة لك: ${title}`,
+                    relatedTaskId: newTaskRef.id,
+                    message: `تم إسناد مهمة جديدة لك: "${title}"${
+                      payload.dueDate ? ` — الموعد النهائي: ${new Date(payload.dueDate).toLocaleDateString("ar-EG")}` : ""
+                    }`,
                   });
                 }
               }

@@ -1,9 +1,11 @@
 // ============================================================
 // GR Spektrumm Tools — Service Worker (App Shell cache)
-// Caches static shell assets for partial offline use.
-// Firestore/Storage/Auth calls always go to the network (real-time data).
+// Network-first for the shell so users always get the latest
+// deployed version instantly; falls back to cache only when
+// offline. Firestore/Storage/Auth calls always go to network.
 // ============================================================
-const CACHE_NAME = "gr-spektrumm-shell-v1";
+const CACHE_VERSION = "v2"; // bump this on every deploy that changes shell files
+const CACHE_NAME = `gr-spektrumm-shell-${CACHE_VERSION}`;
 const SHELL_ASSETS = [
   "/",
   "/index.html",
@@ -31,7 +33,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Never cache Firebase / external API calls — always fresh from network.
+  // Never touch Firebase / external API calls — always fresh from network.
   if (
     url.hostname.includes("firebaseio.com") ||
     url.hostname.includes("googleapis.com") ||
@@ -42,17 +44,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Network-first: always try to fetch the latest file first so a new
+  // deploy is visible immediately. Only fall back to the cached copy
+  // when the network request fails (offline).
   event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request)
-          .then((response) => {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-            return response;
-          })
-          .catch(() => caches.match("/index.html"))
-    )
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then((cached) => cached || caches.match("/index.html"))
+      )
   );
 });

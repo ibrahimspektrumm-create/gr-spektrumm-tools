@@ -7,13 +7,23 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    // Excel files: <=25MB, spreadsheet mime types only, owner folder pattern.
+    // Excel / data files: <=200MB, spreadsheet/CSV mime types, owner folder pattern.
     match /excelFiles/{ownerId}/{fileName} {
       allow read: if isSignedIn();
       allow write: if isSignedIn() &&
         request.auth.uid == ownerId &&
-        request.resource.size < 25 * 1024 * 1024 &&
+        request.resource.size < 200 * 1024 * 1024 &&
         request.resource.contentType.matches('application/.*|text/csv');
+      allow delete: if isSignedIn();
+    }
+
+    // Uploaded HTML tool files: <=150MB, HTML mime type, owner folder pattern.
+    match /toolFiles/{ownerId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() &&
+        request.auth.uid == ownerId &&
+        request.resource.size < 150 * 1024 * 1024 &&
+        request.resource.contentType.matches('text/html|text/plain|application/octet-stream');
       allow delete: if isSignedIn();
     }
 

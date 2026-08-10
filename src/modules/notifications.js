@@ -15,10 +15,18 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { state } from "./core.js";
 
+const TYPE_LABEL = {
+  task_reminder: "📌 مهمة جديدة",
+  deadline: "⏰ تذكير موعد",
+  comment: "💬 تعليق جديد",
+  task_done: "✅ إتمام مهمة",
+};
+
 export function sendNotification({ userId, type, relatedTaskId = null, message }) {
   return addDoc(collection(db, "notifications"), {
     userId,
     type,
+    label: TYPE_LABEL[type] || "🔔 إشعار",
     relatedTaskId,
     message,
     isRead: false,
