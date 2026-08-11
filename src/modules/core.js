@@ -297,6 +297,24 @@ export function playPingSound() {
   }
 }
 
+
+export function unlockNotificationSound() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+
+    if (!audioCtx) {
+      audioCtx = new Ctx();
+    }
+
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  } catch (e) {
+    console.warn("Audio unlock failed:", e);
+  }
+}
+
 export function debounce(fn, wait = 250) {
   let t;
   return (...args) => {

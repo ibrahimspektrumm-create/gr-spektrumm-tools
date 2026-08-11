@@ -1,7 +1,16 @@
 // ============================================================
 // GR Spektrumm Tools — App Shell (Sidebar + Topbar + Command Bar)
 // ============================================================
-import { state, logout, navigate, isAdmin, isAdminOrManager, toast, playPingSound } from "../modules/core.js";
+import {
+  state,
+  logout,
+  navigate,
+  isAdmin,
+  isAdminOrManager,
+  toast,
+  playPingSound,
+  unlockNotificationSound,
+} from "../modules/core.js";
 import { watchMyNotifications, markNotificationRead } from "../modules/notifications.js";
 import { mountPrayerWidget } from "../modules/prayerTimes.js";
 import { getAllOnce, watchCollection } from "../modules/db.js";
@@ -61,6 +70,26 @@ export function renderShell(rootEl) {
   buildNav();
   wireTopbar();
   mountPrayerWidget(document.getElementById("prayer-mount"));
+
+  // Unlock browser audio after the user's first interaction.
+  document.addEventListener(
+    "click",
+    () => {
+      unlockNotificationSound();
+    },
+    { once: true }
+  );
+
+  // Ask for browser notification permission once.
+  if (
+    "Notification" in window &&
+    Notification.permission === "default"
+  ) {
+    setTimeout(() => {
+      Notification.requestPermission().catch(() => {});
+    }, 1200);
+  }
+
   wireNotifications();
   wireCommandBar();
   wireNavCounts();
@@ -150,9 +179,42 @@ function wireNotifications() {
     // Play a sound only for notifications that are brand new since the
     // last snapshot (never on first load / page refresh).
     if (knownIds) {
-      const isNew = notifs.some((n) => !n.isRead && !knownIds.has(n.id));
-      if (isNew) playPingSound();
+      const newNotifications = notifs.filter(
+        (n) => !n.isRead && !knownIds.has(n.id)
+      );
+
+      if (newNotifications.length) {
+        // In-app sound
+        playPingSound();
+
+        // Browser notification
+        if (
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
+          const latest = newNotifications[0];
+
+          try {
+            new Notification(
+              latest.label || "🔔 Spektrumm",
+              {
+                body:
+                  latest.message ||
+                  "لديك إشعار جديد",
+                icon: "/icons/icon-192.png",
+                tag: latest.id,
+              }
+            );
+          } catch (err) {
+            console.warn(
+              "Browser notification failed:",
+              err
+            );
+          }
+        }
+      }
     }
+
     knownIds = new Set(notifs.map((n) => n.id));
 
     items = notifs;

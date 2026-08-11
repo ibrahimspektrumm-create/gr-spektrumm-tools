@@ -17,7 +17,7 @@ import { state } from "./core.js";
 
 const TYPE_LABEL = {
   task_reminder: "📌 مهمة جديدة",
-  deadline: "⏰ تذكير موعد",
+  deadline: "🔔 تذكير من الإدارة",
   comment: "💬 تعليق جديد",
   task_done: "✅ إتمام مهمة",
 };
